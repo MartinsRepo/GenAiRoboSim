@@ -17,3 +17,6 @@ curl -X POST http://localhost:5000/cmd_pose \
 curl -X POST http://localhost:5000/cmd_vel \
   -H "Content-Type: application/json" \
   -d '{"vx": 1.0, "vy": 0.0, "wz": 0.0}'
+
+  # Starten des Scripts flowise_adapter.py ausserhalb des Containers
+  
