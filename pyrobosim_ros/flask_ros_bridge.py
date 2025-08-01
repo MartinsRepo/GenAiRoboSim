@@ -1,3 +1,4 @@
+
 from flask import Flask, request, jsonify
 import rclpy
 from rclpy.node import Node
@@ -6,6 +7,16 @@ import threading
 
 app = Flask(__name__)
 
+@app.route("/")
+def index():
+    return "PyRoboSim Flask ROS Bridge. Use /cmd_pose and /cmd_vel for robot commands."
+
+@app.route("/lidar")
+def get_lidar():
+    # Try to get lidar data from ros_bridge
+    lidar_data = getattr(ros_bridge, "latest_lidar_data", {})
+    return jsonify(lidar_data)
+
 # ROS2 Node Wrapper
 class FlaskROSBridge(Node):
     def __init__(self, robot_name="robot"):
@@ -13,6 +24,29 @@ class FlaskROSBridge(Node):
         self.robot_name = robot_name
         self.pose_pub = self.create_publisher(PoseStamped, f"{robot_name}/cmd_pose", 10)
         self.vel_pub = self.create_publisher(Twist, f"{robot_name}/cmd_vel", 10)
+
+        # Lidar subscriber
+        from sensor_msgs.msg import LaserScan
+        self.latest_lidar_data = {}
+        self.lidar_sub = self.create_subscription(
+            LaserScan,
+            f"{robot_name}/scan",
+            self.lidar_callback,
+            10
+        )
+
+    def lidar_callback(self, msg):
+        # Store latest lidar data as dict
+        self.latest_lidar_data = {
+            "stamp": msg.header.stamp.sec + msg.header.stamp.nanosec * 1e-9,
+            "frame_id": msg.header.frame_id,
+            "angle_min": msg.angle_min,
+            "angle_max": msg.angle_max,
+            "angle_increment": msg.angle_increment,
+            "range_min": msg.range_min,
+            "range_max": msg.range_max,
+            "ranges": list(msg.ranges),
+        }
 
     def publish_pose(self, x, y, yaw):
         msg = PoseStamped()

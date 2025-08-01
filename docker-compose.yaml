@@ -23,8 +23,10 @@ services:
     init: true
     stdin_open: true
     tty: true
-    network_mode: host
-    ipc: host
+    networks:
+    - flowise-shared-net
+    ports:
+      - "5000:5000"
     environment:
       - DISPLAY=${DISPLAY}
       - QT_X11_NO_MITSHM=1
@@ -41,8 +43,6 @@ services:
       - ${XAUTHORITY:-$HOME/.Xauthority}:/root/.Xauthority
     command: >
       bash -c "pip install -r /pyrobosim_ws/src/pyrobosim_ros/requirements.txt && python3 /pyrobosim_ws/src/pyrobosim_ros/flask_ros_bridge.py"
-    ports:
-      - "5000:5000"
     depends_on:
       - demo_ros
   base:
@@ -60,8 +60,8 @@ services:
     stdin_open: true
     tty: true
     # Networking and IPC for ROS 2
-    network_mode: host
-    ipc: host
+    networks:
+      - flowise-shared-net
     # Allows graphical programs in the container.
     environment:
       - DISPLAY=${DISPLAY}
@@ -113,3 +113,7 @@ services:
   demo_pddl_ros:
     extends: base
     command: ros2 launch pyrobosim_ros demo_pddl.launch.py example:=01_simple subscribe:=true verbose:=true
+
+networks:
+  flowise-shared-net:
+    external: true
