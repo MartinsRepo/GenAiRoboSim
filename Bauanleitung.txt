@@ -1,0 +1,19 @@
+Bauanleitung.txt
+
+# baut alles
+docker compose build --no-cache
+
+# baut nur Änderungen
+docker compose build 
+
+docker compose up demo_ros flask_bridge
+
+Hier ein Beispielaufruf, um dem Roboter eine Zielpose per HTTP zu schicken (z.B. mit curl):
+curl -X POST http://localhost:5000/cmd_pose \
+  -H "Content-Type: application/json" \
+  -d '{"x": 1.0, "y": 2.0, "yaw": 0.0}'
+
+ Für eine Velocity-Command (z.B. vorwärts fahren):
+curl -X POST http://localhost:5000/cmd_vel \
+  -H "Content-Type: application/json" \
+  -d '{"vx": 1.0, "vy": 0.0, "wz": 0.0}'

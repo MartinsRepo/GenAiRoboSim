@@ -158,9 +158,7 @@ class Robot(Entity):
         self.canceling_execution = False
         self.initial_battery_level = initial_battery_level
         self.battery_level = initial_battery_level
-
         self.logger.info("Created robot.")
-
     def __del__(self) -> None:
         """Cleans up when deleting the robot instance."""
         self.stop_sensor_threads()
@@ -330,63 +328,10 @@ class Robot(Entity):
         self, start: Pose | None = None, goal: Pose | str | None = None
     ) -> Path | None:
         """
-        Plans a path to a goal position.
-
-        :param start: Start pose for the robot.
-            If not specified, will default to the robot pose.
-        :param goal: Goal pose or entity name for the robot.
-            If not specified, returns None.
-        :return: The path, if one was found, otherwise None.
+        Interne Planung ist deaktiviert. Diese Methode gibt immer None zurück.
         """
-        from ..utils.knowledge import graph_node_from_entity, query_to_entity
-
-        if self.path_planner is None:
-            self.logger.warning(f"No path planner attached to robot.")
-            return None
-
-        if start is None:
-            start = self.get_pose()
-
-        if goal is None:
-            self.logger.warning("Did not specify a goal. Returning None.")
-            return None
-
-        # If the goal is not a pose, we need to extract it from the world knowledge.
-        if not isinstance(goal, Pose):
-            if self.world is None:
-                self.logger.warning(
-                    "Cannot specify a string goal if there is no world set."
-                )
-                return None
-
-            if isinstance(goal, str):
-                query_list = [elem for elem in goal.split(" ") if elem]
-                entity = query_to_entity(
-                    self.world,
-                    query_list,
-                    mode="location",
-                    robot=self,
-                    resolution_strategy="nearest",
-                )
-                if entity is None:
-                    self.logger.warning(
-                        f"Could not resolve goal location query: {query_list}"
-                    )
-                    return None
-
-            goal_node = graph_node_from_entity(self.world, entity, robot=self)
-            if goal_node is None:
-                self.logger.warning(f"Could not find graph node associated with goal.")
-                return None
-            goal = goal_node.pose
-
-        path = self.path_planner.plan(start, goal)
-        if (self.world is not None) and (self.world.gui is not None):
-            show_graphs = True
-            self.world.gui.canvas.show_planner_and_path_signal.emit(
-                self, show_graphs, path
-            )
-        return path
+        self.logger.info("Interne Planung ist deaktiviert. plan_path gibt None zurück.")
+        return None
 
     def follow_path(
         self,

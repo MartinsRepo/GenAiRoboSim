@@ -1,5 +1,6 @@
 """ROS interfaces to world model."""
 
+from pyrobosim.core.robot import Pose
 from functools import partial
 import numpy as np
 import numpy.typing as npt
@@ -244,21 +245,47 @@ class WorldROSWrapper(Node):  # type: ignore[misc]
 
     def add_robot_ros_interfaces(self, robot: Robot) -> None:
         """
-        Adds a velocity command subscriber and state publisher for a specific robot.
+        Adds velocity and pose command subscribers and state publisher for a specific robot.
 
         :param robot: Robot instance.
         """
+        from geometry_msgs.msg import PoseStamped
+
         self.latest_robot_cmds[robot.name] = None
 
-        # Create subscriber
-        sub = self.create_subscription(
+        # Create velocity subscriber
+        sub_vel = self.create_subscription(
             Twist,
             f"{robot.name}/cmd_vel",
             lambda msg: self.velocity_command_callback(msg, robot),
             10,
             callback_group=ReentrantCallbackGroup(),
         )
-        self.robot_command_subs[robot.name] = sub
+        self.robot_command_subs[robot.name] = sub_vel
+
+        # Create pose subscriber
+        def pose_command_callback(msg, robot=robot):
+            # Convert PoseStamped to pyrobosim Pose and set robot pose
+            import math
+            q = msg.pose.orientation
+            siny_cosp = 2 * (q.w * q.z + q.x * q.y)
+            cosy_cosp = 1 - 2 * (q.y * q.y + q.z * q.z)
+            yaw = math.atan2(siny_cosp, cosy_cosp)
+            pose = Pose(
+                x=msg.pose.position.x,
+                y=msg.pose.position.y,
+                yaw=yaw
+            )
+            robot.set_pose(pose)
+            robot.logger.info(f"Pose set via ROS2 Topic: {pose}")
+
+        sub_pose = self.create_subscription(
+            PoseStamped,
+            f"{robot.name}/cmd_pose",
+            pose_command_callback,
+            10,
+            callback_group=ReentrantCallbackGroup(),
+        )
 
         # Create robot state publisher timer
         pub = self.create_publisher(

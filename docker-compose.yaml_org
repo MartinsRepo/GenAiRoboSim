@@ -12,39 +12,6 @@
 #   docker exec -it <container_name> bash
 
 services:
-  flask_bridge:
-    image: pyrobosim_ros:${ROS_DISTRO:-humble}
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-      target: pyrobosim_ros
-      args:
-        ROS_DISTRO: ${ROS_DISTRO:-humble}
-    init: true
-    stdin_open: true
-    tty: true
-    network_mode: host
-    ipc: host
-    environment:
-      - DISPLAY=${DISPLAY}
-      - QT_X11_NO_MITSHM=1
-      - NVIDIA_DRIVER_CAPABILITIES=all
-      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
-    volumes:
-      - ./pyrobosim/:/pyrobosim_ws/src/pyrobosim/:rw
-      - ./pyrobosim_msgs/:/pyrobosim_ws/src/pyrobosim_msgs/:rw
-      - ./pyrobosim_ros/:/pyrobosim_ws/src/pyrobosim_ros/:rw
-      - ./docs/:/pyrobosim_ws/src/docs/:rw
-      - ./test/:/pyrobosim_ws/src/test/:rw
-      - ./pytest.ini:/pyrobosim_ws/pytest.ini:rw
-      - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      - ${XAUTHORITY:-$HOME/.Xauthority}:/root/.Xauthority
-    command: >
-      bash -c "pip install -r /pyrobosim_ws/src/pyrobosim_ros/requirements.txt && python3 /pyrobosim_ws/src/pyrobosim_ros/flask_ros_bridge.py"
-    ports:
-      - "5000:5000"
-    depends_on:
-      - demo_ros
   base:
     image: pyrobosim_ros:${ROS_DISTRO:-humble}
     build:
