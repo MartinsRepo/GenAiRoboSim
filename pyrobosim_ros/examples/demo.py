@@ -14,6 +14,7 @@ from pyrobosim.navigation.execution import ConstantVelocityExecutor
 from pyrobosim.navigation.rrt import RRTPlanner
 from pyrobosim.utils.general import get_data_folder
 from pyrobosim.utils.pose import Pose
+#from pyrobosim_ros.pyrobosim_ros.ros_interface_x import WorldROSWrapper
 from pyrobosim_ros.ros_interface import WorldROSWrapper
 
 

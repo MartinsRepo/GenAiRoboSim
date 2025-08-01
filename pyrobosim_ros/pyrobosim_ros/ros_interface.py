@@ -9,6 +9,7 @@ import time
 from threading import Thread
 
 from action_msgs.msg import GoalStatus
+from sensor_msgs.msg import LaserScan
 import rclpy
 from rclpy.action import ActionServer, CancelResponse
 from rclpy.action.server import ServerGoalHandle
@@ -181,6 +182,16 @@ class WorldROSWrapper(Node):  # type: ignore[misc]
             self.dynamics_latch_time + self.dynamics_ramp_down_time
         )
         self.dynamics_enable_collisions = dynamics_enable_collisions
+        
+        # Lidar Publisher und Zwischenspeicher
+        from sensor_msgs.msg import LaserScan
+        self.lidar_publishers = {}
+        self.latest_lidar_data = {}  # {robot_name: dict}
+        if world:
+            for robot in world.robots:
+                topic = f"{robot.name}/scan"
+                self.lidar_publishers[robot.name] = self.create_publisher(LaserScan, topic, 10)
+        self.create_timer(0.1, self.publish_lidar_data)
 
         self.get_logger().info("World node started.")
 
@@ -196,6 +207,14 @@ class WorldROSWrapper(Node):  # type: ignore[misc]
         set_global_logger(get_logger("pyrobosim"))
         self.world.logger = get_logger(self.world.name)
         self.world.logger.info("Configured ROS node.")
+
+        # Lidar Publisher und Zwischenspeicher (ensure always initialized)
+        from sensor_msgs.msg import LaserScan
+        self.lidar_publishers = {}
+        self.latest_lidar_data = {}
+        for robot in self.world.robots:
+            topic = f"{robot.name}/scan"
+            self.lidar_publishers[robot.name] = self.create_publisher(LaserScan, topic, 10)
 
     def start(self, wait_for_gui: bool = False, auto_spin: bool = True) -> None:
         """
@@ -343,7 +362,39 @@ class WorldROSWrapper(Node):  # type: ignore[misc]
         # Set up logger interface for robot
         robot.logger = get_logger(robot.name)
         robot.logger.info("Configured ROS logger.")
-
+     
+    def publish_lidar_data(self):
+        from sensor_msgs.msg import LaserScan
+        if not hasattr(self, 'world') or not hasattr(self.world, 'robots'):
+            return
+        # Debug: Print all robot names and lidar_publishers keys before publishing
+        self.get_logger().info(f"Lidar publish attempt: robot names {[r.name for r in self.world.robots]}")
+        self.get_logger().info(f"Lidar publishers keys: {list(self.lidar_publishers.keys())}")
+        for robot in self.world.robots:
+            lidar = robot.sensors.get("lidar")
+            if lidar is not None:
+                scan = LaserScan()
+                scan.header.stamp = self.get_clock().now().to_msg()
+                scan.header.frame_id = "base_link"
+                scan.angle_min = lidar.angle_min
+                scan.angle_max = lidar.angle_max
+                scan.angle_increment = lidar.angle_increment
+                scan.range_min = lidar.range_min
+                scan.range_max = lidar.range_max
+                scan.ranges = lidar.get_measurement().tolist()
+                self.lidar_publishers[robot.name].publish(scan)
+                # Zwischenspeicher für Flask
+                self.latest_lidar_data[robot.name] = {
+                    "stamp": scan.header.stamp.sec + scan.header.stamp.nanosec * 1e-9,
+                    "frame_id": scan.header.frame_id,
+                    "angle_min": scan.angle_min,
+                    "angle_max": scan.angle_max,
+                    "angle_increment": scan.angle_increment,
+                    "range_min": scan.range_min,
+                    "range_max": scan.range_max,
+                    "ranges": scan.ranges,
+                }
+                
     def remove_robot_ros_interfaces(self, robot: Robot) -> None:
         """
         Removes ROS interfaces for a specific robot.

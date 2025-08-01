@@ -12,7 +12,7 @@ import threading
 from pyrobosim.core import World, WorldYamlLoader
 from pyrobosim.gui import start_gui
 from pyrobosim.utils.general import get_data_folder
-from pyrobosim_ros.ros_interface import WorldROSWrapper
+from pyrobosim_ros.pyrobosim_ros.ros_interface_x import WorldROSWrapper
 
 
 def load_world() -> World:

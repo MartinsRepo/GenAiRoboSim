@@ -23,7 +23,7 @@ from pyrobosim_msgs.action import (  # type: ignore
 )
 from pyrobosim_msgs.msg import ExecutionResult, RobotState, TaskAction, TaskPlan  # type: ignore
 from pyrobosim_msgs.srv import RequestWorldState, SetLocationState  # type: ignore
-from pyrobosim_ros.ros_interface import WorldROSWrapper
+from pyrobosim_ros.pyrobosim_ros.ros_interface_x import WorldROSWrapper
 
 
 def execute_ros_action(

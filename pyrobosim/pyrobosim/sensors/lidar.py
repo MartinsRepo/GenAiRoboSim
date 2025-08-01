@@ -25,12 +25,14 @@ class Lidar2D(Sensor):
     def __init__(
         self,
         *,
-        update_rate_s: float,
-        angle_units: str,
-        min_angle: float,
-        max_angle: float,
-        angular_resolution: float,
-        max_range_m: float,
+        robot=None, 
+        update_rate_s=0.1, 
+        angle_units="radians", 
+        angle_min=-3.14, 
+        angle_max=3.14, 
+        angle_increment=0.01745, 
+        range_min=0.1,
+        range_max=10.0
     ) -> None:
         """
         Constructs a 2D lidar sensor instance.
@@ -44,19 +46,22 @@ class Lidar2D(Sensor):
         :param max_range_m: The maximum range of each lidar beam, in meters.
         """
         super().__init__()
+        self.robot = robot
         self.update_rate_s = update_rate_s
         self.angle_units = angle_units
-        self.min_angle = min_angle
-        self.max_angle = max_angle
-        self.angular_resolution = angular_resolution
-        self.max_range_m = max_range_m
+        self.angle_min = angle_min
+        self.angle_max = angle_max
+        self.angle_increment = angle_increment
+        self.range_min = range_min
+        self.range_max = range_max
+        
 
         if self.angle_units not in ("degrees", "radians"):
             raise ValueError("Must specify angle units of 'degrees' or 'radians'.")
         units_scaling = 1.0 if angle_units == "radians" else np.pi / 180
 
         self.angles = (
-            np.arange(min_angle, max_angle + angular_resolution, angular_resolution)
+            np.arange(angle_min, angle_max + angle_increment, angle_increment)
             * units_scaling
         )
         self.num_beams = len(self.angles)
@@ -65,7 +70,7 @@ class Lidar2D(Sensor):
                 np.array(
                     [
                         [0.0, 0.0],
-                        [max_range_m * np.cos(angle), max_range_m * np.sin(angle)],
+                        [self.range_max * np.cos(angle), self.range_max * np.sin(angle)],
                     ]
                 )
                 for angle in self.angles

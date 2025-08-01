@@ -102,6 +102,21 @@ class Robot(Entity):
         self.path_planner: PathPlanner | None = None
         self.path_executor: PathExecutor | None = None
         self.sensors: dict[str, Sensor] = {}
+        # Lidar-Sensor automatisch hinzufügen, falls nicht vorhanden
+        from ..sensors.lidar import Lidar2D
+        if sensors is None or "lidar" not in sensors:
+            self.sensors["lidar"] = Lidar2D(
+                robot=self,
+                update_rate_s=0.1,
+                angle_units="radians",
+                angle_min=-3.14,
+                angle_max=3.14,
+                angle_increment=0.01745,  # ~1° in radians
+                range_min=0.1,
+                range_max=10.0,
+            )
+        else:
+            self.sensors = sensors
 
         if name == "world":
             raise ValueError("Robots cannot be named 'world'.")

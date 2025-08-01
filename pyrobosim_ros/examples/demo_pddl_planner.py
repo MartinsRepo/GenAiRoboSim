@@ -15,7 +15,7 @@ from pyrobosim.core import World, WorldYamlLoader
 from pyrobosim.planning.pddlstream import PDDLStreamPlanner, get_default_domains_folder
 from pyrobosim.utils.general import get_data_folder
 
-from pyrobosim_ros.ros_interface import update_world_from_state_msg
+from pyrobosim_ros.pyrobosim_ros.ros_interface_x import update_world_from_state_msg
 from pyrobosim_ros.ros_conversions import (
     goal_specification_from_ros,
     task_plan_to_ros,
