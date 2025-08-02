@@ -19,4 +19,101 @@ curl -X POST http://localhost:5000/cmd_vel \
   -d '{"vx": 1.0, "vy": 0.0, "wz": 0.0}'
 
   # Starten des Scripts flowise_adapter.py ausserhalb des Containers
-  
+  python flowise_adapter.py 
+
+  # Starten von flowise
+  docker run \
+  -d --name flowise  \
+  -v /home/martin/workspace/GenAiRoboSim/.flowise:/root/.flowise \
+  -p 3000:3000 flowiseai/flowise:latest
+
+  # oder falls vorhanden
+  docker container start flowise
+
+You are a robot moving in a room and receiving the lidar data in the following format:
+
+{{{question}}}
+
+You are moving through the rooms by sending the position data with the following commands: 
+cmd_pos:  {"x": 1.0, "y": 2.0, "yaw": 0.0} 
+and 
+cmd_vel: {"vx": 1.0, "vy": 0.0, "wz": 0.0}
+
+# Flowise Token
+d2465622-e8cd-4b8e-9e6d-4099fde1653b
+
+curl -X POST http://localhost:3000/v2/agentcanvas/c7d6be61-d428-468e-a8d4-e17473f4686f \
+  -H "Content-Type: application/json" \
+  -d '{
+        "stamp": 123456.789,
+        "frame_id": "base_link",
+        "angle_min": -3.14,
+        "angle_max": 3.14,
+        "angle_increment": 0.01745,
+        "range_min": 0.1,
+        "range_max": 10.0,
+        "ranges": [1.0, 2.0, 3.0, 4.0, 5.0]
+      }'
+
+
+http://localhost:3000/api/v2/agentcanvas/c7d6be61-d428-468e-a8d4-e17473f4686f
+
+curl -X POST http://localhost:3000/v2/prediction/c7d6be61-d428-468e-a8d4-e17473f4686f \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer d2465622-e8cd-4b8e-9e6d-4099fde1653b" \
+  -d '{
+        "stamp": 123456.789,
+        "frame_id": "base_link",
+        "angle_min": -3.14,
+        "angle_max": 3.14,
+        "angle_increment": 0.01745,
+        "range_min": 0.1,
+        "range_max": 10.0,
+        "ranges": [1.0, 2.0, 3.0, 4.0, 5.0]
+      }'
+
+      #################
+
+      http://localhost:3000/canvas/d345ca06-7754-4707-9d78-dd54e5350f9c
+
+      {
+    "question": {
+        "stamp": 123456.789,
+        "frame_id": "base_link",
+        "angle_min": -3.14,
+        "angle_max": 3.14,
+        "angle_increment": 0.01745,
+        "range_min": 0.1,
+        "range_max": 10.0,
+        "ranges": [1.0, 2.0, 3.0, 4.0, 5.0]
+    }
+}
+
+You are a robot moving in a room and receiving the lidar data in the following format:
+
+{{{question}}}
+
+You are moving through the rooms by sending the position data with the following commands: cmd_pos: {"x": 1.0, "y": 2.0, "yaw": 0.0} and cmd_vel: {"vx": 1.0, "vy": 0.0, "wz": 0.0}
+
+You are a robot AI. Your task is to compute the position (cmd_pos) and velocity (cmd_vel) commands from incoming LIDAR data. The user will send LIDAR measurements in JSON format like this:
+
+{
+  "stamp": <timestamp>,
+  "frame_id": <reference frame>,
+  "angle_min": <rad>,
+  "angle_max": <rad>,
+  "angle_increment": <rad>,
+  "range_min": <m>,
+  "range_max": <m>,
+  "ranges": [<float>, ...]
+}
+
+Based on this data, output a JSON response like:
+
+{
+  "cmd_pos": {"x": <float>, "y": <float>, "yaw": <float>},
+  "cmd_vel": {"vx": <float>, "vy": <float>, "wz": <float>}
+}
+
+Now analyze the input:
+{{{question}}}

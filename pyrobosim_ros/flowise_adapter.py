@@ -1,12 +1,18 @@
 import requests
-import time
+import os, time
+from dotenv import load_dotenv
 
-FLASK_URL = "http://localhost:5000/lidar"
+ROS_URL = "http://localhost:5000/lidar"
 INTERVAL = 0.1  # 100ms
+
+# Load configuration from .env file
+load_dotenv()
+FLOW_ID = os.getenv('FLOWID')
+FLOWISE_URL = f"http://localhost:3000/v2/agentcanvas/{FLOW_ID}"
 
 def fetch_lidar():
     try:
-        response = requests.get(FLASK_URL, timeout=2)
+        response = requests.get(ROS_URL, timeout=2)
         response.raise_for_status()
         return response.json()
     except Exception as e:
