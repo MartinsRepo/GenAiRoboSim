@@ -6,9 +6,13 @@ docker compose build --no-cache
 # baut nur Änderungen
 docker compose build 
 
+# Ausführen des Containers im Bash
+
+cd workspace/GenAiRoboSim/docker
+
 docker compose up demo_ros flask_bridge
 
-Hier ein Beispielaufruf, um dem Roboter eine Zielpose per HTTP zu schicken (z.B. mit curl):
+# Hier ein Beispielaufruf, um dem Roboter eine Zielpose per HTTP zu schicken (z.B. mit curl):
 curl -X POST http://localhost:5000/cmd_pose \
   -H "Content-Type: application/json" \
   -d '{"x": 1.0, "y": 2.0, "yaw": 0.0}'
@@ -18,76 +22,7 @@ curl -X POST http://localhost:5000/cmd_vel \
   -H "Content-Type: application/json" \
   -d '{"vx": 1.0, "vy": 0.0, "wz": 0.0}'
 
-  # Starten des Scripts flowise_adapter.py ausserhalb des Containers
-  python flowise_adapter.py 
-
-  # Starten von flowise
-  docker run \
-  -d --name flowise  \
-  -v /home/martin/workspace/GenAiRoboSim/.flowise:/root/.flowise \
-  -p 3000:3000 flowiseai/flowise:latest
-
-  # oder falls vorhanden
-  docker container start flowise
-
-You are a robot moving in a room and receiving the lidar data in the following format:
-
-{{{question}}}
-
-You are moving through the rooms by sending the position data with the following commands: 
-cmd_pos:  {"x": 1.0, "y": 2.0, "yaw": 0.0} 
-and 
-cmd_vel: {"vx": 1.0, "vy": 0.0, "wz": 0.0}
-
-# Flowise Token
-d2465622-e8cd-4b8e-9e6d-4099fde1653b
-
-curl -X POST http://localhost:3000/v2/agentcanvas/c7d6be61-d428-468e-a8d4-e17473f4686f \
-  -H "Content-Type: application/json" \
-  -d '{
-        "stamp": 123456.789,
-        "frame_id": "base_link",
-        "angle_min": -3.14,
-        "angle_max": 3.14,
-        "angle_increment": 0.01745,
-        "range_min": 0.1,
-        "range_max": 10.0,
-        "ranges": [1.0, 2.0, 3.0, 4.0, 5.0]
-      }'
-
-
-http://localhost:3000/api/v2/agentcanvas/c7d6be61-d428-468e-a8d4-e17473f4686f
-
-curl -X POST http://localhost:3000/v2/prediction/c7d6be61-d428-468e-a8d4-e17473f4686f \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer d2465622-e8cd-4b8e-9e6d-4099fde1653b" \
-  -d '{
-        "stamp": 123456.789,
-        "frame_id": "base_link",
-        "angle_min": -3.14,
-        "angle_max": 3.14,
-        "angle_increment": 0.01745,
-        "range_min": 0.1,
-        "range_max": 10.0,
-        "ranges": [1.0, 2.0, 3.0, 4.0, 5.0]
-      }'
-
-      #################
-
-      http://localhost:3000/canvas/d345ca06-7754-4707-9d78-dd54e5350f9c
-
-      {
-    "question": {
-        "stamp": 123456.789,
-        "frame_id": "base_link",
-        "angle_min": -3.14,
-        "angle_max": 3.14,
-        "angle_increment": 0.01745,
-        "range_min": 0.1,
-        "range_max": 10.0,
-        "ranges": [1.0, 2.0, 3.0, 4.0, 5.0]
-    }
-}
+# Prompt im Chatbot
 
 You are a robot moving in a room and receiving the lidar data in the following format:
 
@@ -117,3 +52,10 @@ Based on this data, output a JSON response like:
 
 Now analyze the input:
 {{{question}}}
+
+# Ausführen von model_test.py ergibt:
+
+Flowise URL: http://localhost:3000/api/v1/prediction/d345ca06-7754-4707-9d78-dd54e5350f9c
+Status: 200
+Text: {"text":"```json\n{\n  \"cmd_pos\": {\n    \"x\": 0.0,\n    \"y\": 5.0,\n    \"yaw\": 0.0\n  },\n  \"cmd_vel\": {\n    \"vx\": 1.0,\n    \"vy\": 0.0,\n    \"wz\": 0.0\n  }\n}\n```","question":"{\"stamp\": 123456.789, \"frame_id\": \"base_link\", \"angle_min\": -3.14, \"angle_max\": 3.14, \"angle_increment\": 0.01745, \"range_min\": 0.1, \"range_max\": 10.0, \"ranges\": [1.0, 2.0, 3.0, 4.0, 5.0]}","chatId":"7037a86c-c192-4b26-bea0-3859825013a0","chatMessageId":"5fd35f50-c114-45f9-84d2-021dc215871b","isStreamValid":false,"sessionId":"7037a86c-c192-4b26-bea0-3859825013a0","memoryType":"Buffer Window Memory"}
+Answer from the model: {'text': '```json\n{\n  "cmd_pos": {\n    "x": 0.0,\n    "y": 5.0,\n    "yaw": 0.0\n  },\n  "cmd_vel": {\n    "vx": 1.0,\n    "vy": 0.0,\n    "wz": 0.0\n  }\n}\n```', 'question': '{"stamp": 123456.789, "frame_id": "base_link", "angle_min": -3.14, "angle_max": 3.14, "angle_increment": 0.01745, "range_min": 0.1, "range_max": 10.0, "ranges": [1.0, 2.0, 3.0, 4.0, 5.0]}', 'chatId': '7037a86c-c192-4b26-bea0-3859825013a0', 'chatMessageId': '5fd35f50-c114-45f9-84d2-021dc215871b', 'isStreamValid': False, 'sessionId': '7037a86c-c192-4b26-bea0-3859825013a0', 'memoryType': 'Buffer Window Memory'}
