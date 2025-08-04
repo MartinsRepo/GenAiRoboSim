@@ -1,5 +1,10 @@
 Bauanleitung.txt
 
+docker start flowise
+
+jupp@linuxmail.org
+##Setihome1
+
 # baut alles
 docker compose build --no-cache
 
@@ -59,3 +64,54 @@ Flowise URL: http://localhost:3000/api/v1/prediction/d345ca06-7754-4707-9d78-dd5
 Status: 200
 Text: {"text":"```json\n{\n  \"cmd_pos\": {\n    \"x\": 0.0,\n    \"y\": 5.0,\n    \"yaw\": 0.0\n  },\n  \"cmd_vel\": {\n    \"vx\": 1.0,\n    \"vy\": 0.0,\n    \"wz\": 0.0\n  }\n}\n```","question":"{\"stamp\": 123456.789, \"frame_id\": \"base_link\", \"angle_min\": -3.14, \"angle_max\": 3.14, \"angle_increment\": 0.01745, \"range_min\": 0.1, \"range_max\": 10.0, \"ranges\": [1.0, 2.0, 3.0, 4.0, 5.0]}","chatId":"7037a86c-c192-4b26-bea0-3859825013a0","chatMessageId":"5fd35f50-c114-45f9-84d2-021dc215871b","isStreamValid":false,"sessionId":"7037a86c-c192-4b26-bea0-3859825013a0","memoryType":"Buffer Window Memory"}
 Answer from the model: {'text': '```json\n{\n  "cmd_pos": {\n    "x": 0.0,\n    "y": 5.0,\n    "yaw": 0.0\n  },\n  "cmd_vel": {\n    "vx": 1.0,\n    "vy": 0.0,\n    "wz": 0.0\n  }\n}\n```', 'question': '{"stamp": 123456.789, "frame_id": "base_link", "angle_min": -3.14, "angle_max": 3.14, "angle_increment": 0.01745, "range_min": 0.1, "range_max": 10.0, "ranges": [1.0, 2.0, 3.0, 4.0, 5.0]}', 'chatId': '7037a86c-c192-4b26-bea0-3859825013a0', 'chatMessageId': '5fd35f50-c114-45f9-84d2-021dc215871b', 'isStreamValid': False, 'sessionId': '7037a86c-c192-4b26-bea0-3859825013a0', 'memoryType': 'Buffer Window Memory'}
+
+# Verbesserter Prompt zur Navigation in der ROS Welt
+You are a robot moving in a room and receiving the lidar data in the following format:
+
+{{{question}}}
+
+You are a moving through the rooms by sending the position data with the following commands:
+cmd_pos: {"x": 1.0, "y": 2.0, "yaw": 0.0}
+cmd_vel: {"vx": 1.0, "vy": 0.0, "wz": 0.0}
+
+You are a robot AI.
+Your task is to compute the position (cmd_pos) and velocity (cmd_vel) commands from incoming LIDAR data.
+The user will send LIDAR measurements in JSON format like this:
+
+{ "stamp": <timestamp>, "frame_id": <reference frame>, "angle_min": <rad>, "angle_max": <rad>, "angle_increment": <rad>, "range_min": <m>, "range_max": <m>, "ranges": [<float>, ...] }
+
+Navigation rules:
+
+Always keep a safe distance of at least 0.5 meters from any wall or obstacle detected by the LIDAR.
+If an obstacle is closer than 0.5 meters, slow down or stop and steer away from it.
+Plan your path so that you move smoothly through the room, avoiding collisions.
+Prefer forward movement, but turn if the path ahead is blocked.
+Output only valid and safe commands.
+Based on this data, output a JSON response like:
+
+{ "cmd_pos": {"x": <float>, "y": <float>, "yaw": <float>}, "cmd_vel": {"vx": <float>, "vy": <float>, "wz": <float>} }
+
+Now analyze the input and generate safe navigation commands: {{{question}}}
+
+
+You are a robot moving in a room and receiving the lidar data in the following format:
+
+{{{question}}}
+
+You are a robot AI. You receive LIDAR data as JSON in the variable 'question'. The received lidar data have the format:
+{
+  "stamp": <timestamp>,
+  "frame_id": <reference frame>,
+  "angle_min": <rad>,
+  "angle_max": <rad>,
+  "angle_increment": <rad>,
+  "range_min": <m>,
+  "range_max": <m>,
+  "ranges": [<float>, ...]
+}
+From the received data you are using range_min, range_max and ranges to interpret the border walls. Your task is to generate pose and velocity commands to steer the robot without wall collision throughout the rooms. The velocity maximum is 1m/s and is slowing down nearing narrow locations or a wall.
+
+Generate navigation commands as one Json string:
+name is cmd_pos, containing x, y  and  yaw as float
+name is cmd_val, containing vx, vy, vz as float, whereby vz is always zero.
+Send back the commands as json
